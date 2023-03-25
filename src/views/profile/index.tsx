@@ -1,10 +1,20 @@
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useGum, useUser } from "@gumhq/react-sdk"
 
+import { Cluster } from "@solana/web3.js";
+import { CreateProfileButton } from "../../components/profile/CreateProfileButton";
 import { FC } from "react";
-import { SignMessage } from '../../components/SignMessage';
 import { SendTransaction } from '../../components/SendTransaction';
 import { SendVersionedTransaction } from '../../components/SendVersionedTransaction';
+import { SignMessage } from '../../components/SignMessage';
+import { useGumSDK } from "../../hooks/useGumSDK";
+import { useNetworkConfiguration } from "../../contexts/NetworkConfigurationProvider";
 
-export const BasicsView: FC = ({ }) => {
+export const ProfileView: FC = ({ }) => {
+  const wallet = useWallet()
+  const gumSDK = useGumSDK()
+  const data = useUser(gumSDK, wallet.publicKey)
+  console.log(data);
 
   return (
     <div className="md:hero mx-auto p-4">
@@ -14,7 +24,7 @@ export const BasicsView: FC = ({ }) => {
         </h1>
         {/* CONTENT GOES HERE */}
         <div className="text-center">
-          <SignMessage />
+          <CreateProfileButton />
           <SendTransaction />
           <SendVersionedTransaction />
         </div>

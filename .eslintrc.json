@@ -1,5 +1,12 @@
 {
   "extends": [
-    "next"
-  ]
+    "next",
+    "typescript"
+  ],
+  "rules": {
+    "indent": [
+      "error",
+      2
+    ]
+  }
 }

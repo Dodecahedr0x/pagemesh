@@ -1,3 +1,4 @@
+import { Cluster } from '@solana/web3.js';
 import { FC } from 'react';
 import dynamic from 'next/dynamic';
 import { useNetworkConfiguration } from '../contexts/NetworkConfigurationProvider';
@@ -12,7 +13,7 @@ const NetworkSwitcher: FC = () => {
       <a>Network</a>
       <select             
         value={networkConfiguration}
-        onChange={(e) => setNetworkConfiguration(e.target.value)} 
+        onChange={(e) => setNetworkConfiguration(e.target.value as Cluster)} 
         className="select max-w-xs"
       >
         <option value="mainnet-beta">main</option>

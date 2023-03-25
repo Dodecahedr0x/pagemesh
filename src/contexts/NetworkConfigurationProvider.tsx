@@ -1,22 +1,23 @@
-import { useLocalStorage } from '@solana/wallet-adapter-react';
-import { createContext, FC, ReactNode, useContext } from 'react';
+import { FC, ReactNode, createContext, useContext } from 'react';
 
+import { Cluster } from '@solana/web3.js';
+import { useLocalStorage } from '@solana/wallet-adapter-react';
 
 export interface NetworkConfigurationState {
-    networkConfiguration: string;
-    setNetworkConfiguration(networkConfiguration: string): void;
+  networkConfiguration: Cluster;
+  setNetworkConfiguration(networkConfiguration: Cluster): void;
 }
 
 export const NetworkConfigurationContext = createContext<NetworkConfigurationState>({} as NetworkConfigurationState);
 
 export function useNetworkConfiguration(): NetworkConfigurationState {
-    return useContext(NetworkConfigurationContext);
+  return useContext(NetworkConfigurationContext);
 }
 
 export const NetworkConfigurationProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [networkConfiguration, setNetworkConfiguration] = useLocalStorage("network", "devnet");
+  const [networkConfiguration, setNetworkConfiguration] = useLocalStorage<Cluster>("network", "devnet");
 
-    return (
-        <NetworkConfigurationContext.Provider value={{ networkConfiguration, setNetworkConfiguration }}>{children}</NetworkConfigurationContext.Provider>
-    );
+  return (
+    <NetworkConfigurationContext.Provider value={{ networkConfiguration, setNetworkConfiguration }}>{children}</NetworkConfigurationContext.Provider>
+  );
 };
