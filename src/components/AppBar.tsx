@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-import { FC } from 'react';
 import Link from "next/link";
 import NavElement from './nav-element';
 import NetworkSwitcher from './NetworkSwitcher';
+import { UserPicker } from "./user/UserPicker";
 import dynamic from 'next/dynamic';
 import { useAutoConnect } from '../contexts/AutoConnectProvider';
 
@@ -48,13 +48,16 @@ export const AppBar: React.FC = () => {
               </svg>
             </Link>
           </div>
-          <WalletMultiButtonDynamic className="btn-ghost btn-sm relative flex md:hidden text-lg " />
+          <div className="flex flex-col md:hidden">
+            <WalletMultiButtonDynamic className="btn-ghost btn-sm relative text-lg " />
+            <UserPicker />
+          </div>
         </div>
 
         {/* Nav Links */}
         {/* Wallet & Settings */}
         <div className="navbar-end">
-          <div className="hidden md:inline-flex align-items-center justify-items gap-6">
+          <div className="hidden md:inline-flex align-items-center justify-items gap-6 my-auto">
             <NavElement
               label="Home"
               href="/"
@@ -65,7 +68,10 @@ export const AppBar: React.FC = () => {
               href="/profile"
               navigationStarts={() => setIsNavOpen(false)}
             />
-            <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg mr-6 " />
+            <div className="flex flex-col mr-6">
+              <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg" />
+              <UserPicker />
+            </div>
           </div>
           <label
             htmlFor="my-drawer"

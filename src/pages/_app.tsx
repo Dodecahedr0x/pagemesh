@@ -1,9 +1,10 @@
+import React, { FC } from 'react';
+
 import { APP_NAME } from '../utils/constants';
 import { AppBar } from '../components/AppBar';
 import { AppProps } from 'next/app';
 import { ContentContainer } from '../components/ContentContainer';
 import { ContextProvider } from '../contexts/ContextProvider';
-import { FC } from 'react';
 import { Footer } from '../components/Footer';
 import Head from 'next/head';
 import Notifications from '../components/Notification'

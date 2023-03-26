@@ -1,12 +1,11 @@
 import { Cluster } from '@solana/web3.js';
 import { FC } from 'react';
+import React from "react"
 import dynamic from 'next/dynamic';
 import { useNetworkConfiguration } from '../contexts/NetworkConfigurationProvider';
 
 const NetworkSwitcher: FC = () => {
   const { networkConfiguration, setNetworkConfiguration } = useNetworkConfiguration();
-
-  console.log(networkConfiguration);
 
   return (
     <label className="cursor-pointer label">

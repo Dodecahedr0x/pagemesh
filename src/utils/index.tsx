@@ -1,3 +1,4 @@
+import { PublicKey } from '@solana/web3.js';
 import { format } from 'date-fns';
 
 // Concatenates classes into a single className string
@@ -11,7 +12,7 @@ const formatDate = (date: string) => format(new Date(date), 'MM/dd/yyyy h:mm:ss'
  * @param number Number to format.
  */
 const numberToCurrencyString = (number: number) =>
-    number.toLocaleString('en-US');
+  number.toLocaleString('en-US');
 
 /**
  * Returns a number whose value is limited to the given range.
@@ -26,9 +27,15 @@ const numberToCurrencyString = (number: number) =>
  */
 const clamp = (current, min, max) => Math.min(Math.max(current, min), max);
 
+const shortAddress = (key: PublicKey | string) => {
+  const s = key.toString()
+  return s.substring(0, 4) + "..." + s.substring(s.length - 4, s.length)
+}
+
 export {
-    cn,
-    formatDate,
-    numberToCurrencyString,
-    clamp,
+  cn,
+  formatDate,
+  numberToCurrencyString,
+  clamp,
+  shortAddress
 };

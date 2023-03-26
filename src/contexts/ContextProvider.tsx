@@ -1,7 +1,6 @@
 import { AutoConnectProvider, useAutoConnect } from './AutoConnectProvider';
 import { Cluster, clusterApiUrl } from '@solana/web3.js';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { FC, ReactNode, useCallback, useMemo } from 'react';
 import { NetworkConfigurationProvider, useNetworkConfiguration } from './NetworkConfigurationProvider';
 import {
   PhantomWalletAdapter,
@@ -10,6 +9,7 @@ import {
   SolletWalletAdapter,
   TorusWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
+import React, { FC, ReactNode, useCallback, useMemo } from 'react';
 import { WalletAdapterNetwork, WalletError } from '@solana/wallet-adapter-base';
 
 import dynamic from "next/dynamic";
@@ -25,9 +25,16 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { autoConnect } = useAutoConnect();
   const { networkConfiguration } = useNetworkConfiguration();
   const network = networkConfiguration as WalletAdapterNetwork;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
-  console.log(network);
+  const endpoint = useMemo(() => {
+    switch(network) {
+    case "mainnet-beta":
+      return "https://rpc.helius.xyz/?api-key=d1593552-6d2e-4ef5-b897-856c3d96c316"
+      break;
+    default: 
+      return clusterApiUrl(network)
+      break;
+    }
+  }, [network]);
 
   const wallets = useMemo(
     () => [
@@ -45,7 +52,6 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const onError = useCallback(
     (error: WalletError) => {
       notify({ type: 'error', message: error.message ? `${error.name}: ${error.message}` : error.name });
-      console.error(error);
     },
     []
   );

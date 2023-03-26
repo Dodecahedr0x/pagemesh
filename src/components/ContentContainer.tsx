@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import Link from "next/link";
 import NavElement from './nav-element';
+import React from "react"
 import Text from './Text';
 
 interface Props {
