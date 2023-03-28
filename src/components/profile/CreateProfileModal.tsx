@@ -1,21 +1,64 @@
 import { Dialog, Transition } from '@headlessui/react'
 import { FC, Fragment, useRef, useState } from 'react';
+import { useCreateProfile, useUser } from '@gumhq/react-sdk';
 
 import { CgProfile } from "react-icons/cg"
+import Image from 'next/image';
+import { PublicKey } from '@solana/web3.js';
 import React from "react"
+import { ShadowFile } from "@shadow-drive/sdk"
+import { notify } from '../../utils/notifications';
 import { useGumSDK } from '../../hooks/useGumSDK';
-import { useUser } from '@gumhq/react-sdk';
+import useGumStore from '../../stores/useGumStore';
+import { useShdwDrive } from '../../hooks/useShdwDrive';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 interface Props {
   isOpen: boolean,
-  onClose: () => void 
+  onClose: () => void
 }
 export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
-  const { publicKey } = useWallet();
-  const sdk = useGumSDK()
-  // const { user } = useUser(sdk)
   const cancelButtonRef = useRef(null)
+  const { publicKey } = useWallet();
+  const drive = useShdwDrive()
+  const sdk = useGumSDK()
+  const store = useGumStore()
+  const [name, setName] = useState("")
+  const [nickname, setNickname] = useState("")
+  const [bio, setBio] = useState("")
+  const [avatar, setAvatar] = useState<File>()
+  const [avatarImage, setAvatarImage] = useState("")
+  const [creating, setCreating] = useState(false)
+  const { create, isCreatingProfile, createProfileError } = useCreateProfile(sdk)
+
+  const validProfile = avatarImage && drive && publicKey
+
+  console.log(publicKey, isCreatingProfile, createProfileError, avatar)
+  const handleCreate = async () => {
+    if (!validProfile) return
+
+    setCreating(true)
+    console.log(`${Math.ceil(avatarImage.length / 1000)}KB`);
+
+    try {
+      const storageResponse = await drive.createStorageAccount(`Bookmark profile ${avatar.name}`, `${Math.ceil(avatarImage.length / 1000) + 2}KB`, "v2")
+      console.log(storageResponse)
+      const uploadAvatarResponse = await drive.uploadFile(new PublicKey(storageResponse.shdw_bucket), avatar)
+      const uploadProfileResponse = await drive.uploadFile(new PublicKey(storageResponse.shdw_bucket), new File([JSON.stringify({
+        name,
+        bio,
+        username: nickname,
+        avatar: `https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/${avatar.name}`
+      })], `profile.json`))
+      console.log(uploadProfileResponse, `https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/profile.json`)
+      await create(`https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/profile.json`, "Personal", new PublicKey(store.user.cl_pubkey), publicKey)
+    } catch (err) {
+      console.log(String(err))
+      notify({ type: "error", message: `Error: ${err}` })
+    } finally {
+      setCreating(false)
+    }
+  }
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -29,7 +72,7 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-neutral-500 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-secondary bg-opacity-75 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -49,15 +92,48 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary sm:mx-0 sm:h-10 sm:w-10">
                       <CgProfile className="h-6 w-6 text-primary-content" aria-hidden="true" />
                     </div>
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                      <Dialog.Title as="h3" className="text-base font-semibold leading-6">
-                        Create your 
+                    <div className="mt-3 text-center flex flex-col gap-2 sm:mt-0 sm:ml-4 sm:text-left">
+                      <Dialog.Title as="div" className="text-base font-semibold leading-6">
+                        Create your profile
                       </Dialog.Title>
-                      <div className="mt-2">
-                        <p className="text-sm">
-                          Are you sure you want to deactivate your account? All of your data will be permanently
-                          removed. This action cannot be undone.
-                        </p>
+                      <div className='flex flex-col'>
+                        <label className='label'>
+                          <span className='label-text'>Name</span>
+                        </label>
+                        <input className="input" placeholder='Name...' onChange={e => setName(e.target.value)} />
+                      </div>
+                      <div className='flex flex-col'>
+                        <label className='label'>
+                          <span className='label-text'>Nickname</span>
+                        </label>
+                        <input className="input" placeholder='Nickname...' onChange={e => setNickname(e.target.value)} />
+                      </div>
+                      <div className='flex flex-col gap-1'>
+                        <label className='label'>
+                          <span className='label-text'>Biography</span>
+                        </label>
+                        <input className="input" placeholder='Biography...' onChange={e => setBio(e.target.value)} />
+                      </div>
+                      <div className='flex flex-col gap-1'>
+                        <label className='label'>
+                          <span className='label-text'>Avatar</span>
+                        </label>
+                        {avatar ? <Image className='rounded' src={avatarImage} alt={"Chosen avatar"} width={200} height={200} /> : null}
+                        <input
+                          className="block w-full text-sm text-secondary-content file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0 file:text-sm file:font-semibold
+                            file:bg-secondary file:text-secondary-content hover:file:bg-secondary-focus"
+                          type="file"
+                          onChange={event => {
+                            const file = event.target.files[0];
+                            setAvatar(file)
+                            const reader = new FileReader();
+                            reader.readAsDataURL(file);
+                            reader.onloadend = () => {
+                              setAvatarImage(reader.result.toString());
+                            };
+                          }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -65,8 +141,8 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
                 <div className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
-                    className="btn btn-primary inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto"
-                    onClick={onClose}
+                    className={`btn btn-primary ${isCreatingProfile ? "loading" : ""} ${validProfile ? "" : "disabled"} inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto`}
+                    onClick={handleCreate}
                   >
                     Create
                   </button>

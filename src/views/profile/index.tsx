@@ -1,20 +1,32 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useGum, useUser } from "@gumhq/react-sdk"
+import { FC, useEffect, useState } from "react";
 
-import { Cluster } from "@solana/web3.js";
 import { CreateProfileButton } from "../../components/profile/CreateProfileButton";
-import { FC } from "react";
+import { GumDecodedProfile } from "@gumhq/sdk/lib/profile";
+import { PublicKey } from "@solana/web3.js";
+import React from "react"
 import { SendTransaction } from '../../components/SendTransaction';
 import { SendVersionedTransaction } from '../../components/SendVersionedTransaction';
-import { SignMessage } from '../../components/SignMessage';
 import { useGumSDK } from "../../hooks/useGumSDK";
-import { useNetworkConfiguration } from "../../contexts/NetworkConfigurationProvider";
+import useGumStore from "../../stores/useGumStore";
+import { useProfile } from "@gumhq/react-sdk"
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export const ProfileView: FC = ({ }) => {
-  const wallet = useWallet()
-  const gumSDK = useGumSDK()
-  const data = useUser(gumSDK, wallet.publicKey)
-  console.log(data);
+  const { publicKey } = useWallet()
+  const sdk = useGumSDK()
+  const { user } = useGumStore()
+  const [profiles, setProfiles] = useState<GumDecodedProfile[]>()
+  const data = useProfile(sdk, publicKey)
+
+  useEffect(() => {
+    async function fetchProfiles() {
+      if(!user) return
+
+      setProfiles(await sdk.profile.getProfilesByUser(new PublicKey(publicKey)))
+    }
+
+    fetchProfiles()
+  }, [user, sdk.profile, publicKey])
 
   return (
     <div className="md:hero mx-auto p-4">
@@ -24,9 +36,10 @@ export const ProfileView: FC = ({ }) => {
         </h1>
         {/* CONTENT GOES HERE */}
         <div className="text-center">
+          <div>
+            {profiles?.map(profile => <div key={profile.cl_pubkey}>{profile.cl_pubkey}</div>)}
+          </div>
           <CreateProfileButton />
-          <SendTransaction />
-          <SendVersionedTransaction />
         </div>
       </div>
     </div>

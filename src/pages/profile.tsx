@@ -2,6 +2,7 @@ import { APP_NAME } from "../utils/constants";
 import Head from "next/head";
 import type { NextPage } from "next";
 import { ProfileView } from "../views";
+import React from "react"
 
 const Basics: NextPage = (props) => {
   return (

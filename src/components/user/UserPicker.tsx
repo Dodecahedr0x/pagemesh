@@ -18,6 +18,12 @@ export function UserPicker() {
   const { create, userPDA, isCreatingUser } = useCreateUser(sdk)
   const [users, setUsers] = useState<GumDecodedUser[]>()
 
+  const fetchUsers = useCallback(async function() {
+    if(!publicKey || !sdk) return
+
+    setUsers((await sdk.user.getUserAccountsByAuthority(publicKey)).sort((a,b) => a.cl_pubkey > b.cl_pubkey ? 1 : -1))
+  }, [sdk, publicKey])
+
   const handleCreateUser = useCallback(async () => {
     try {
       await create(publicKey)
@@ -26,15 +32,7 @@ export function UserPicker() {
     } catch(err) {
       notify({ type: "error", message: `Failed to create user: ${String(err)}` })
     }
-  }, [create, publicKey])
-  
-  console.log(publicKey, sdk, users, user)
-
-  const fetchUsers = useCallback(async function() {
-    if(!publicKey || !sdk) return
-
-    setUsers((await sdk.user.getUserAccountsByAuthority(publicKey)).sort((a,b) => a.cl_pubkey > b.cl_pubkey ? 1 : -1))
-  }, [sdk, publicKey])
+  }, [create, publicKey, fetchUsers])
 
   useEffect(() => {
     fetchUsers()

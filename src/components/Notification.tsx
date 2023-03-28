@@ -5,6 +5,7 @@ import {
 } from '@heroicons/react/outline'
 import { useEffect, useState } from 'react'
 
+import React from "react"
 import { XIcon } from '@heroicons/react/solid'
 import { getExplorerUrl } from '../utils/explorer'
 import { useConnection } from '@solana/wallet-adapter-react';
@@ -67,7 +68,7 @@ const Notification = ({ type, message, description, txid, onHide }) => {
 
   return (
     <div
-      className={`max-w-sm w-full bg-bkg-1 shadow-lg rounded-md mt-2 pointer-events-auto ring-1 ring-black ring-opacity-5 p-2 mx-4 mb-12 overflow-hidden`}
+      className={`max-w-sm w-full bg-primary shadow-lg rounded-md mt-2 pointer-events-auto ring-1 ring-black ring-opacity-5 p-2 mx-4 mb-12 overflow-hidden`}
     >
       <div className={`p-4`}>
         <div className={`flex items-center`}>

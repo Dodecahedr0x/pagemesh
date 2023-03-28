@@ -1,6 +1,7 @@
 import { FC, ReactNode, createContext, useContext } from 'react';
 
 import { Cluster } from '@solana/web3.js';
+import React from "react"
 import { useLocalStorage } from '@solana/wallet-adapter-react';
 
 export interface NetworkConfigurationState {
