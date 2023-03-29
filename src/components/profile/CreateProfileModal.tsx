@@ -1,13 +1,12 @@
 import { Dialog, Transition } from '@headlessui/react'
 import { FC, Fragment, useRef, useState } from 'react';
-import { useCreateProfile, useUser } from '@gumhq/react-sdk';
 
 import { CgProfile } from "react-icons/cg"
 import Image from 'next/image';
 import { PublicKey } from '@solana/web3.js';
 import React from "react"
-import { ShadowFile } from "@shadow-drive/sdk"
-import { notify } from '../../utils/notifications';
+import { useAsyncActionsModal } from '../../hooks/useAsyncActionsModal';
+import { useCreateProfile } from '@gumhq/react-sdk';
 import { useGumSDK } from '../../hooks/useGumSDK';
 import useGumStore from '../../stores/useGumStore';
 import { useShdwDrive } from '../../hooks/useShdwDrive';
@@ -28,35 +27,49 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
   const [bio, setBio] = useState("")
   const [avatar, setAvatar] = useState<File>()
   const [avatarImage, setAvatarImage] = useState("")
-  const [creating, setCreating] = useState(false)
-  const { create, isCreatingProfile, createProfileError } = useCreateProfile(sdk)
+  const { create, isCreatingProfile } = useCreateProfile(sdk)
+  const { setActions, nextStep, setError,  modal } = useAsyncActionsModal({ onSuccess: onClose })
 
   const validProfile = avatarImage && drive && publicKey
 
-  console.log(publicKey, isCreatingProfile, createProfileError, avatar)
   const handleCreate = async () => {
     if (!validProfile) return
 
-    setCreating(true)
-    console.log(`${Math.ceil(avatarImage.length / 1000)}KB`);
+    setActions([
+      {
+        title: "Creating storage account",
+        description: "Creating a new storage account on ShdwDrive"
+      },
+      {
+        title: "Upload",
+        description: "Uploading the profile picture"
+      },
+      {
+        title: "Upload",
+        description: "Uploading the whole profile"
+      },
+      {
+        title: "Creating profile",
+        description: "Creating the Gum profile"
+      }
+    ])
 
     try {
-      const storageResponse = await drive.createStorageAccount(`Bookmark profile ${avatar.name}`, `${Math.ceil(avatarImage.length / 1000) + 2}KB`, "v2")
-      console.log(storageResponse)
-      const uploadAvatarResponse = await drive.uploadFile(new PublicKey(storageResponse.shdw_bucket), avatar)
-      const uploadProfileResponse = await drive.uploadFile(new PublicKey(storageResponse.shdw_bucket), new File([JSON.stringify({
+      const createStorageResponse = await drive.createStorageAccount(`Bookmark profile ${avatar.name}`, `${Math.ceil(avatarImage.length / 1000) + 2}KB`, "v2")
+      nextStep()
+      await drive.uploadFile(new PublicKey(createStorageResponse.shdw_bucket), avatar)
+      nextStep()
+      await drive.uploadFile(new PublicKey(createStorageResponse.shdw_bucket), new File([JSON.stringify({
         name,
         bio,
         username: nickname,
-        avatar: `https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/${avatar.name}`
+        avatar: `https://shdw-drive.genesysgo.net/${createStorageResponse.shdw_bucket}/${avatar.name}`
       })], `profile.json`))
-      console.log(uploadProfileResponse, `https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/profile.json`)
-      await create(`https://shdw-drive.genesysgo.net/${storageResponse.shdw_bucket}/profile.json`, "Personal", new PublicKey(store.user.cl_pubkey), publicKey)
-    } catch (err) {
-      console.log(String(err))
-      notify({ type: "error", message: `Error: ${err}` })
-    } finally {
-      setCreating(false)
+      nextStep()
+      await create(`https://shdw-drive.genesysgo.net/${createStorageResponse.shdw_bucket}/profile.json`, "Personal", new PublicKey(store.user.cl_pubkey), publicKey)
+      nextStep()
+    } catch(err) {
+      setError()
     }
   }
 
@@ -87,6 +100,7 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg text-left shadow-xl bg-base-300 transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                {modal}
                 <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary sm:mx-0 sm:h-10 sm:w-10">
