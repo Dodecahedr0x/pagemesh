@@ -12,6 +12,15 @@ const WalletMultiButtonDynamic = dynamic(
   { ssr: false }
 );
 
+const tabs = [
+  {
+    name: "Home", href: "/"
+  },
+  {
+    name: "Settings", href: "/settings"
+  }
+]
+
 export const AppBar: React.FC = () => {
   const { autoConnect, setAutoConnect } = useAutoConnect();
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -58,16 +67,12 @@ export const AppBar: React.FC = () => {
         {/* Wallet & Settings */}
         <div className="navbar-end">
           <div className="hidden md:inline-flex align-items-center justify-items gap-6 my-auto">
-            <NavElement
-              label="Home"
-              href="/"
+            {tabs.map(tab => <NavElement
+              key={tab.href}
+              label={tab.name}
+              href={tab.href}
               navigationStarts={() => setIsNavOpen(false)}
-            />
-            <NavElement
-              label="Profile"
-              href="/profile"
-              navigationStarts={() => setIsNavOpen(false)}
-            />
+            />)}
             <div className="flex flex-col mr-6">
               <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg" />
               <UserPicker />

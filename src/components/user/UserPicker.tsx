@@ -18,6 +18,12 @@ export function UserPicker() {
   const { create, userPDA, isCreatingUser } = useCreateUser(sdk)
   const [users, setUsers] = useState<GumDecodedUser[]>()
 
+  useEffect(() => {
+    if(publicKey && user && publicKey.toString() !== user.authority) {
+      setDefaultUser
+    }
+  })
+
   const fetchUsers = useCallback(async function() {
     if(!publicKey || !sdk) return
 

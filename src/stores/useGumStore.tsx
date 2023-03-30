@@ -1,20 +1,30 @@
-import { StateStorage, persist } from 'zustand/middleware'
 import create, { State } from "zustand";
 
 import { GumDecodedUser } from "@gumhq/sdk/lib/user";
-import { ProfileMetadata } from "@gumhq/sdk/src/profileMetadata"
+import { Profile } from "../utils/types";
+import { ProfileMetadataType } from '@gumhq/sdk/lib/profileMetadata';
+import { persist } from 'zustand/middleware'
 import produce from "immer";
 
 interface GumStore extends State {
-  profile?: ProfileMetadata
+  profile?: Profile
   user?: GumDecodedUser | undefined
   users?: GumDecodedUser[]
   setDefaultUser: (x: GumDecodedUser) => void
+  setDefaultProfile: (x: Profile) => void
 }
 
 const useGumStore = create<GumStore>(persist((set, _get) => ({
   setDefaultUser: (newUser: GumDecodedUser) => set(produce<GumStore>(state => {
     state.user = newUser
+  })),
+  setDefaultProfile: (newProfile: Profile) => set(produce<GumStore>(state => {
+    state.profile = newProfile
+  })),
+  reset: () => set(produce<GumStore>(state => {
+    delete state.user
+    delete state.users
+    delete state.profile
   }))
 }), {
   name: 'bookmark-gum-store', // name of the item in the storage (must be unique)
