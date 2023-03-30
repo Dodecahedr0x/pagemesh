@@ -28,7 +28,6 @@ export function UserPicker() {
     try {
       await create(publicKey)
       await fetchUsers()
-      // setDefaultUser((await sdk.user.getUser(publicKey)))
     } catch(err) {
       notify({ type: "error", message: `Failed to create user: ${String(err)}` })
     }
@@ -52,7 +51,7 @@ export function UserPicker() {
           className={`btn btn-primary btn-sm flex flex-row justify-between`}
         >
           <CgProfile className="w-6 h-6" />
-          <div>{user ? shortAddress(user.cl_pubkey) : "Pick a user"}</div>
+          <div>{user && user.authority === publicKey.toString() ? shortAddress(user.cl_pubkey) : "Pick a user"}</div>
         </Menu.Button>
         <Menu.Items
           className={`${
