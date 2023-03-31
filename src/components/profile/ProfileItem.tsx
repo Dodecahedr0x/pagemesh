@@ -14,7 +14,8 @@ interface Props {
 }
 export const ProfileItem: FC<Props> = ({ profile }) => {
   const { profile: selectedProfile, setDefaultProfile } = useGumStore()
-
+  console.log(profile, selectedProfile);
+  
   return (
     <div className={`flex flex-row gap-2 w-full justify-between p-1 min-w-48 ${selectedProfile?.profile === profile.profile ? "bg-success" : ""}`} onClick={() => setDefaultProfile(profile)}>
       <div className='my-auto w-16'>
@@ -23,6 +24,9 @@ export const ProfileItem: FC<Props> = ({ profile }) => {
       <div className='flex flex-col justify-start text-start w-full'>
         <div>{profile.name}</div>
         <div className='text-xs opacity-60'>@{profile.username}</div>
+      </div>
+      <div className="my-auto">
+        {profile.profileNamespace.toUpperCase()}
       </div>
       {/* <div>{selectedProfile?.name || "???"}</div> */}
     </div>

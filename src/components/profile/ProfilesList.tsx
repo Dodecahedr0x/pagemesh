@@ -17,21 +17,33 @@ export const ProfilesList: FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>()
 
   useEffect(() => {
+    setProfiles(undefined)
+  }, [user, publicKey])
+
+  useEffect(() => {
+    console.log("fetch profiles")
     async function fetchProfiles() {
-      if(!user || !sdk || !publicKey || profiles) return
+      console.log(profiles, profiles?.filter(p => p.userPublicKey === user.cl_pubkey));
+
+      if (!user || !sdk || !publicKey || profiles) return
 
       const accounts = await sdk.profile.getProfilesByUser(new PublicKey(publicKey))
-      setProfiles(await Promise.all(accounts.map(async account => {
-        const graphMetadata = await sdk.profileMetadata.getProfileMetadataByProfile(new PublicKey(account.cl_pubkey))
-        const { data } = await axios.get(graphMetadata.metadatauri)
-        
+      console.log(accounts);
+
+      setProfiles(await Promise.all(accounts.map(e => ({
+        userPublicKey: e.username,
+        profileNamespace: Object.keys(JSON.parse(e.namespace))[0],
+        profilePublicKey: e.cl_pubkey,
+      })).filter(e => e.userPublicKey === user.cl_pubkey).map(async account => {
+        const { metadata, ...graphMetadata } = await sdk.profileMetadata.getProfileMetadataByProfile(new PublicKey(account.profilePublicKey))
+
         return {
+          ...user,
           ...account,
           ...graphMetadata,
-          ...data,
+          ...(metadata as any).data,
         }
       })))
-      // setProfiles()
     }
 
     fetchProfiles()
@@ -39,9 +51,10 @@ export const ProfilesList: FC = () => {
 
   return (
     <div className="flex flex-col justify-center bg-base-200 p-3 rounded-xl shadow-xl">
-      <div className='flex flex-col rounded bg-base-100 rounded p-1'>
+      <div>Select the default profile</div>
+      {profiles && profiles.length > 0 ? <div className='flex flex-col rounded bg-base-100 rounded p-1'>
         {profiles?.map(profile => <ProfileItem key={profile.profile} profile={profile} />)}
-      </div>
+      </div> : null}
       <CreateProfileButton />
     </div>
   );

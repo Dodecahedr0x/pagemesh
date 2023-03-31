@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 
 import { ProfilesList } from "../../components/profile/ProfilesList";
+import { UsersList } from "../../components/user/UsersList";
 
 export const SettingsView: FC = ({ }) => {
   return (
@@ -10,7 +11,8 @@ export const SettingsView: FC = ({ }) => {
           Settings
         </h1>
         {/* CONTENT GOES HERE */}
-        <div className="text-center">
+        <div className="text-center flex flex-col gap-5">
+          <UsersList />
           <ProfilesList />
         </div>
       </div>
