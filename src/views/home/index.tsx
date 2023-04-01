@@ -1,67 +1,136 @@
 // Next, React
-import { FC, useEffect, useState } from 'react';
-import Link from 'next/link';
 
-// Wallet
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { FC, useEffect, useState } from "react";
 
-// Components
-import { RequestAirdrop } from '../../components/RequestAirdrop';
-import pkg from '../../../package.json';
+import { Page } from "../../utils/types";
+import { PageCard } from "../../components/page/PageCard";
+import { PublicKey } from "@solana/web3.js";
+import { RequestAirdrop } from "../../components/RequestAirdrop";
+import { useAsyncActionsModal } from "../../hooks/useAsyncActionsModal";
+import { useCreatePost } from "@gumhq/react-sdk";
+import { useGumSDK } from "../../hooks/useGumSDK";
+import useGumStore from "../../stores/useGumStore";
+import { useShdwDrive } from "../../hooks/useShdwDrive";
+import useShdwDriveStore from "../../stores/useShdwDriveStore";
+import { useWallet } from "@solana/wallet-adapter-react";
 
-// Store
-import useUserSOLBalanceStore from '../../stores/useUserSOLBalanceStore';
-
-export const HomeView: FC = ({ }) => {
-  const wallet = useWallet();
-  const { connection } = useConnection();
-
-  const balance = useUserSOLBalanceStore((s) => s.balance)
-  const { getUserSOLBalance } = useUserSOLBalanceStore()
+export const HomeView: FC = ({}) => {
+  const { publicKey, signMessage } = useWallet();
+  const sdk = useGumSDK();
+  const { profile } = useGumStore();
+  const drive = useShdwDrive();
+  const { bucket } = useShdwDriveStore();
+  const { create } = useCreatePost(sdk);
+  const [pages, setPages] = useState<Page[]>();
+  const { setActions, nextStep, setError, modal } = useAsyncActionsModal({});
 
   useEffect(() => {
-    if (wallet.publicKey) {
-      console.log(wallet.publicKey.toBase58())
-      getUserSOLBalance(wallet.publicKey, connection)
+    if (publicKey && sdk && profile) {
+      async function fetch() {
+        const posts = await sdk.post.getPostsByProfile(
+          new PublicKey(profile.profilePublicKey)
+        );
+
+        setPages(
+          posts
+            .map((post) => ({
+              postPublicKey: post.cl_pubkey,
+              metadataUri: post.metadatauri,
+              ...(post.metadata as any).data,
+            }))
+            .filter((post) => post.contentType === "personal_page")
+        );
+      }
+      fetch();
     }
-  }, [wallet.publicKey, connection, getUserSOLBalance])
+  }, [publicKey, sdk]);
+
+  const handleCreate = async () => {
+    setActions([
+      {
+        title: "Sign",
+        description: "Sign the default page",
+      },
+      {
+        title: "Upload",
+        description: "Uploading the default page",
+      },
+      {
+        title: "Creating post",
+        description: "Creating the Gum post",
+      },
+    ]);
+
+    try {
+      const filename = `page-${new Date().toISOString()}.json`;
+      const postContent = {
+        content: { blocks: [] },
+        type: "blocks",
+        contentType: "personal_page",
+        text_preview: "Default Bookmark page",
+      };
+      const signature = await signMessage(
+        Buffer.from(JSON.stringify(postContent))
+      );
+      nextStep();
+      await drive.uploadFile(
+        new PublicKey(bucket),
+        new File(
+          [
+            JSON.stringify({
+              ...postContent,
+              authorship: { signature, publicKey: publicKey.toString() },
+            }),
+          ],
+          filename
+        )
+      );
+      nextStep();
+      await create(
+        `https://shdw-drive.genesysgo.net/${bucket}/${filename}`,
+        new PublicKey(profile.profilePublicKey),
+        new PublicKey(profile.userPublicKey),
+        publicKey
+      );
+      nextStep();
+    } catch (err) {
+      setError();
+    }
+  };
 
   return (
-
     <div className="md:hero mx-auto p-4">
+      {modal}
       <div className="md:hero-content flex flex-col">
-        <div className='mt-6'>
-        <div className='text-sm font-normal align-bottom text-right text-slate-600 mt-4'>v{pkg.version}</div>
-        <h1 className="text-center text-5xl md:pl-12 font-bold text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mb-4">
-          Solana Next
-        </h1>
+        <div className="mt-6">
+          <h1 className="text-center text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mb-4">
+            Bookmark
+          </h1>
         </div>
-        <h4 className="md:w-full text-2x1 md:text-4xl text-center text-slate-300 my-2">
-          <p>Unleash the full power of blockchain with Solana and Next.js 13.</p>
-          <p className='text-slate-500 text-2x1 leading-relaxed'>Full-stack Solana applications made easy.</p>
-        </h4>
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-indigo-500 rounded-lg blur opacity-40 animate-tilt"></div>
-          <div className="max-w-md mx-auto mockup-code bg-primary border-2 border-[#5252529f] p-6 px-10 my-2">
-            <pre data-prefix=">">
-              <code className="truncate">{`npx create-solana-dapp <dapp-name>`} </code>
-            </pre>
+        <div>
+          {pages ? pages.map((page) => <PageCard page={page} />) : null}
+        </div>
+        <div className="flex flex-row justify-center">
+          <div className="relative group items-center">
+            <div
+              className="m-1 absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-fuchsia-500 
+                rounded-lg blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"
+            ></div>
+            <button
+              className="flex flex-row gap-2  group w-60 m-2 btn animate-pulse bg-gradient-to-br from-indigo-500 to-fuchsia-500 hover:from-white hover:to-purple-300 text-black"
+              onClick={() => handleCreate()}
+            >
+              <div className="hidden group-disabled:block ">
+                Wallet not connected
+              </div>
+              <div className="block group-disabled:hidden">
+                Create a new page
+              </div>
+            </button>
           </div>
         </div>
         <div className="flex flex-col mt-2">
           <RequestAirdrop />
-          <h4 className="md:w-full text-2xl text-slate-300 my-2">
-          {wallet &&
-          <div className="flex flex-row justify-center">
-            <div>
-              {(balance || 0).toLocaleString()}
-              </div>
-              <div className='text-slate-600 ml-2'>
-                SOL
-              </div>
-          </div>
-          }
-          </h4>
         </div>
       </div>
     </div>
