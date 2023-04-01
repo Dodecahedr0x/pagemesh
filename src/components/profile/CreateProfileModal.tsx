@@ -1,81 +1,97 @@
-import { Dialog, Transition } from '@headlessui/react'
-import { FC, Fragment, useRef, useState } from 'react';
+import { Dialog, Transition } from "@headlessui/react";
+import { FC, Fragment, useRef, useState } from "react";
 
-import { CgProfile } from "react-icons/cg"
-import Image from 'next/image';
-import { PublicKey } from '@solana/web3.js';
-import React from "react"
-import { useAsyncActionsModal } from '../../hooks/useAsyncActionsModal';
-import { useCreateProfile } from '@gumhq/react-sdk';
-import { useGumSDK } from '../../hooks/useGumSDK';
-import useGumStore from '../../stores/useGumStore';
-import { useShdwDrive } from '../../hooks/useShdwDrive';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { CgProfile } from "react-icons/cg";
+import Image from "next/image";
+import { PublicKey } from "@solana/web3.js";
+import React from "react";
+import { useAsyncActionsModal } from "../../hooks/useAsyncActionsModal";
+import { useCreateProfile } from "@gumhq/react-sdk";
+import { useGumSDK } from "../../hooks/useGumSDK";
+import useGumStore from "../../stores/useGumStore";
+import { useShdwDrive } from "../../hooks/useShdwDrive";
+import useShdwDriveStore from "../../stores/useShdwDriveStore";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface Props {
-  isOpen: boolean,
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
-  const cancelButtonRef = useRef(null)
+  const cancelButtonRef = useRef(null);
   const { publicKey } = useWallet();
-  const drive = useShdwDrive()
-  const sdk = useGumSDK()
-  const store = useGumStore()
-  const [name, setName] = useState("")
-  const [nickname, setNickname] = useState("")
-  const [bio, setBio] = useState("")
-  const [avatar, setAvatar] = useState<File>()
-  const [avatarImage, setAvatarImage] = useState("")
-  const { create, isCreatingProfile } = useCreateProfile(sdk)
-  const { setActions, nextStep, setError,  modal } = useAsyncActionsModal({ onSuccess: onClose })
+  const drive = useShdwDrive();
+  const sdk = useGumSDK();
+  const store = useGumStore();
+  const { bucket } = useShdwDriveStore();
+  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState<File>();
+  const [avatarImage, setAvatarImage] = useState("");
+  const { create, isCreatingProfile } = useCreateProfile(sdk);
+  const { setActions, nextStep, setError, modal } = useAsyncActionsModal({
+    onSuccess: onClose,
+  });
 
-  const validProfile = avatarImage && drive && publicKey
+  const validProfile = avatarImage && drive && publicKey;
 
   const handleCreate = async () => {
-    if (!validProfile) return
+    if (!validProfile) return;
 
     setActions([
       {
-        title: "Creating storage account",
-        description: "Creating a new storage account on ShdwDrive"
+        title: "Upload",
+        description: "Uploading the profile picture",
       },
       {
         title: "Upload",
-        description: "Uploading the profile picture"
-      },
-      {
-        title: "Upload",
-        description: "Uploading the whole profile"
+        description: "Uploading the whole profile",
       },
       {
         title: "Creating profile",
-        description: "Creating the Gum profile"
-      }
-    ])
+        description: "Creating the Gum profile",
+      },
+    ]);
 
     try {
-      const createStorageResponse = await drive.createStorageAccount(`Bookmark profile ${avatar.name}`, `${Math.ceil(avatarImage.length / 1000) + 2}KB`, "v2")
-      nextStep()
-      await drive.uploadFile(new PublicKey(createStorageResponse.shdw_bucket), avatar)
-      nextStep()
-      await drive.uploadFile(new PublicKey(createStorageResponse.shdw_bucket), new File([JSON.stringify({
-        name,
-        bio,
-        username: nickname,
-        avatar: `https://shdw-drive.genesysgo.net/${createStorageResponse.shdw_bucket}/${avatar.name}`
-      })], `profile.json`))
-      nextStep()
-      await create(`https://shdw-drive.genesysgo.net/${createStorageResponse.shdw_bucket}/profile.json`, "Personal", new PublicKey(store.user.cl_pubkey), publicKey)
-      nextStep()
-    } catch(err) {
-      setError()
+      await drive.uploadFile(new PublicKey(bucket), avatar);
+      nextStep();
+      await drive.uploadFile(
+        new PublicKey(bucket),
+        new File(
+          [
+            JSON.stringify({
+              name,
+              bio,
+              username: nickname,
+              avatar: `https://shdw-drive.genesysgo.net/${bucket}/${avatar.name}`,
+            }),
+          ],
+          `profile.json`
+        )
+      );
+      nextStep();
+      await create(
+        `https://shdw-drive.genesysgo.net/${bucket}/profile.json`,
+        "Personal",
+        new PublicKey(store.user.cl_pubkey),
+        publicKey
+      );
+      nextStep();
+    } catch (err) {
+      setError();
     }
-  }
+  };
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-10"
+        initialFocus={cancelButtonRef}
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -104,43 +120,69 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
                 <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
                     <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary sm:mx-0 sm:h-10 sm:w-10">
-                      <CgProfile className="h-6 w-6 text-primary-content" aria-hidden="true" />
+                      <CgProfile
+                        className="h-6 w-6 text-primary-content"
+                        aria-hidden="true"
+                      />
                     </div>
                     <div className="mt-3 text-center flex flex-col gap-2 sm:mt-0 sm:ml-4 sm:text-left">
-                      <Dialog.Title as="div" className="text-base font-semibold leading-6">
+                      <Dialog.Title
+                        as="div"
+                        className="text-base font-semibold leading-6"
+                      >
                         Create your profile
                       </Dialog.Title>
-                      <div className='flex flex-col'>
-                        <label className='label'>
-                          <span className='label-text'>Name</span>
+                      <div className="flex flex-col">
+                        <label className="label">
+                          <span className="label-text">Name</span>
                         </label>
-                        <input className="input" placeholder='Name...' onChange={e => setName(e.target.value)} />
+                        <input
+                          className="input"
+                          placeholder="Name..."
+                          onChange={(e) => setName(e.target.value)}
+                        />
                       </div>
-                      <div className='flex flex-col'>
-                        <label className='label'>
-                          <span className='label-text'>Nickname</span>
+                      <div className="flex flex-col">
+                        <label className="label">
+                          <span className="label-text">Nickname</span>
                         </label>
-                        <input className="input" placeholder='Nickname...' onChange={e => setNickname(e.target.value)} />
+                        <input
+                          className="input"
+                          placeholder="Nickname..."
+                          onChange={(e) => setNickname(e.target.value)}
+                        />
                       </div>
-                      <div className='flex flex-col gap-1'>
-                        <label className='label'>
-                          <span className='label-text'>Biography</span>
+                      <div className="flex flex-col gap-1">
+                        <label className="label">
+                          <span className="label-text">Biography</span>
                         </label>
-                        <input className="input" placeholder='Biography...' onChange={e => setBio(e.target.value)} />
+                        <input
+                          className="input"
+                          placeholder="Biography..."
+                          onChange={(e) => setBio(e.target.value)}
+                        />
                       </div>
-                      <div className='flex flex-col gap-1'>
-                        <label className='label'>
-                          <span className='label-text'>Avatar</span>
+                      <div className="flex flex-col gap-1">
+                        <label className="label">
+                          <span className="label-text">Avatar</span>
                         </label>
-                        {avatar ? <Image className='rounded' src={avatarImage} alt={"Chosen avatar"} width={200} height={200} /> : null}
+                        {avatar ? (
+                          <Image
+                            className="rounded"
+                            src={avatarImage}
+                            alt={"Chosen avatar"}
+                            width={200}
+                            height={200}
+                          />
+                        ) : null}
                         <input
                           className="block w-full text-sm text-secondary-content file:mr-4 file:py-2 file:px-4
                             file:rounded-full file:border-0 file:text-sm file:font-semibold
                             file:bg-secondary file:text-secondary-content hover:file:bg-secondary-focus"
                           type="file"
-                          onChange={event => {
+                          onChange={(event) => {
                             const file = event.target.files[0];
-                            setAvatar(file)
+                            setAvatar(file);
                             const reader = new FileReader();
                             reader.readAsDataURL(file);
                             reader.onloadend = () => {
@@ -155,7 +197,11 @@ export const CreateProfileModal: FC<Props> = ({ isOpen, onClose }) => {
                 <div className="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                   <button
                     type="button"
-                    className={`btn btn-primary ${isCreatingProfile ? "loading" : ""} ${validProfile ? "" : "disabled"} inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto`}
+                    className={`btn btn-primary ${
+                      isCreatingProfile ? "loading" : ""
+                    } ${
+                      validProfile ? "" : "disabled"
+                    } inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm sm:ml-3 sm:w-auto`}
                     onClick={handleCreate}
                   >
                     Create
