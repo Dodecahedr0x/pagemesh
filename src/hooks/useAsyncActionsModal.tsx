@@ -62,7 +62,7 @@ export const useAsyncActionsModal = ({
       case "idle":
         return <AiFillClockCircle className="w-10 h-10 m-auto" />;
       case "running":
-        return <div className="btn btn-circle loading m-auto"></div>;
+        return <div className="btn btn-circle loading flex m-auto"></div>;
       case "failed":
         return <AiFillCloseCircle className="w-10 h-10 m-auto text-error" />;
       case "finished":
@@ -133,7 +133,7 @@ export const useAsyncActionsModal = ({
                               <th>
                                 <div className="flex flex-col gap-1">
                                   <div className="">
-                                    {e.title || ""} {i}
+                                    {i + 1}. {e.title || ""}
                                   </div>
                                   <div className="text-xs opacity-60">
                                     {e.description || ""}

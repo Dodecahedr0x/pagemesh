@@ -1,1 +1,6 @@
-export const APP_NAME = "Bookmark"
+export const APP_NAME = "Bookmark";
+
+export enum ContentBlockType {
+  Microblog = "microblog",
+  PersonalPage = "personal_page",
+}
