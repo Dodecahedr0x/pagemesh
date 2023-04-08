@@ -23,7 +23,7 @@ export function usePage(key?: PublicKey | string) {
         const { data } = await axios.get(postAccount.metadataUri);
 
         setPage({
-          postPublicKey: key,
+          postPublicKey: publicKey,
           profilePublicKey: postAccount.profile,
           metadataUri: postAccount.metadataUri,
           ...data,

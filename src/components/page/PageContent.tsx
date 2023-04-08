@@ -4,6 +4,7 @@ import { FC, useCallback } from "react";
 import { AddBlockButton } from "./AddBlockButton";
 import { MdEdit } from "react-icons/md";
 import { PageContentBlock } from "./PageContentBlock";
+import { PageTitle } from "./PageTitle";
 import { PublicKey } from "@solana/web3.js";
 import React from "react";
 import { useAsyncActionsModal } from "../../hooks/useAsyncActionsModal";
@@ -65,7 +66,7 @@ export const PageContent: FC<Props> = ({ page, pageKey }) => {
                 },
               }),
             ],
-            page.metadataUri.split("/").reduce((a, b) => b)
+            page.metadataUri.split("/").pop()
           ),
           "v2"
         );
@@ -80,16 +81,7 @@ export const PageContent: FC<Props> = ({ page, pageKey }) => {
   return (
     <div className={`flex flex-col ${page?.className || ""}`}>
       {modal}
-      <div className="flex flex-row m-auto gap-2">
-        <div className="text-2xl font-bold my-5">
-          {page?.text_preview || "???"}
-        </div>
-        {edit ? (
-          <div className="btn btn-ghost btn-xs my-auto">
-            <MdEdit />
-          </div>
-        ) : null}
-      </div>
+      <PageTitle page={page} edit={edit} />
       {edit ? (
         <AddBlockButton choice={(block) => handleCreateBlock(block, 0)} />
       ) : null}
@@ -97,8 +89,9 @@ export const PageContent: FC<Props> = ({ page, pageKey }) => {
         ? page.content?.blocks.map((e, i) =>
             edit ? (
               <>
-                <PageContentBlock block={e} />
+                <PageContentBlock block={e} key={`block-${i}`} />
                 <AddBlockButton
+                  key={`add-${i}`}
                   choice={(block) => handleCreateBlock(block, i + 1)}
                 />
               </>

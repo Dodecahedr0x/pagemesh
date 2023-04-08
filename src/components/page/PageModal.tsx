@@ -7,6 +7,7 @@ import { MdEdit, MdEditOff } from "react-icons/md";
 import { AddBlockButton } from "./AddBlockButton";
 import { GrEdit } from "react-icons/gr";
 import Link from "next/link";
+import { PageContent } from "./PageContent";
 import { PageContentBlock } from "./PageContentBlock";
 import { PublicKey } from "@solana/web3.js";
 import React from "react";
@@ -71,7 +72,7 @@ export const PageModal: FC<Props> = ({ page, pageKey, isOpen, onClose }) => {
                 },
               }),
             ],
-            page.metadataUri.split("/").reduce((a, b) => b)
+            page.metadataUri.split("/").pop()
           ),
           "v2"
         );
@@ -133,39 +134,7 @@ export const PageModal: FC<Props> = ({ page, pageKey, isOpen, onClose }) => {
                     </Link>
                   )}
                 </div>
-                <div className={`flex flex-col ${page?.className || ""}`}>
-                  <div className="flex flex-row m-auto gap-2">
-                    <div className="text-2xl font-bold my-5">
-                      {page?.text_preview || "???"}
-                    </div>
-                    {edit ? (
-                      <div className="btn btn-ghost btn-xs my-auto">
-                        <MdEdit />
-                      </div>
-                    ) : null}
-                  </div>
-                  {edit ? (
-                    <AddBlockButton
-                      choice={(block) => handleCreateBlock(block, 0)}
-                    />
-                  ) : null}
-                  {page
-                    ? page.content?.blocks.map((e, i) =>
-                        edit ? (
-                          <>
-                            <PageContentBlock block={e} />
-                            <AddBlockButton
-                              choice={(block) =>
-                                handleCreateBlock(block, i + 1)
-                              }
-                            />
-                          </>
-                        ) : (
-                          <PageContentBlock key={i} block={e} />
-                        )
-                      )
-                    : null}
-                </div>
+                <PageContent page={page} />
               </Dialog.Panel>
             </Transition.Child>
           </div>

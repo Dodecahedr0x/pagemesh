@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useState } from "react";
 
+import { ContentBlockType } from "../../utils/constants";
 import { Page } from "../../utils/types";
 import { PageCard } from "../../components/page/PageCard";
 import { PublicKey } from "@solana/web3.js";
@@ -66,7 +67,7 @@ export const HomeView: FC = ({}) => {
       const postContent = {
         content: { blocks: [] },
         type: "blocks",
-        contentType: "personal_page",
+        contentType: ContentBlockType.PersonalPage,
         text_preview: "Default Bookmark page",
       };
       const signature = await signMessage(

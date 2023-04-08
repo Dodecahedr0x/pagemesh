@@ -40,7 +40,7 @@ export const AppBar: React.FC = () => {
           </div>
           <div className="flex flex-col md:hidden">
             <WalletMultiButtonDynamic className="btn-ghost btn-sm relative text-lg " />
-            <UserPicker />
+            {/* <UserPicker /> */}
           </div>
         </div>
 
@@ -58,7 +58,7 @@ export const AppBar: React.FC = () => {
             ))}
             <div className="flex flex-col mr-6">
               <WalletMultiButtonDynamic className="btn-ghost btn-sm rounded-btn text-lg" />
-              <UserPicker />
+              {/* <UserPicker /> */}
             </div>
           </div>
           <label
