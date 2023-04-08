@@ -1,8 +1,8 @@
 // Next, React
 
+import { APP_NAME, ContentBlockType } from "../../utils/constants";
 import { FC, useEffect, useState } from "react";
 
-import { ContentBlockType } from "../../utils/constants";
 import { Page } from "../../utils/types";
 import { PageCard } from "../../components/page/PageCard";
 import { PublicKey } from "@solana/web3.js";
@@ -105,7 +105,7 @@ export const HomeView: FC = ({}) => {
       <div className="md:hero-content flex flex-col">
         <div className="mt-6">
           <h1 className="text-center text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-fuchsia-500 mb-4">
-            Bookmark
+            {APP_NAME}
           </h1>
         </div>
         <div>
