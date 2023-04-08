@@ -1,4 +1,4 @@
-export const APP_NAME = "Bookmark";
+export const APP_NAME = "PageMesh";
 
 export enum ContentBlockType {
   Microblog = "microblog",
