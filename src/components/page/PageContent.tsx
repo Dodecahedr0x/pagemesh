@@ -7,6 +7,7 @@ import { PageContentBlock } from "./PageContentBlock";
 import { PageTitle } from "./PageTitle";
 import { PublicKey } from "@solana/web3.js";
 import React from "react";
+import { notify } from "../../utils/notifications";
 import { useAsyncActionsModal } from "../../hooks/useAsyncActionsModal";
 import useGumStore from "../../stores/useGumStore";
 import { usePage } from "../../hooks/usePage";
@@ -35,6 +36,8 @@ export const PageContent: FC<Props> = ({ page, pageKey }) => {
 
   const handleCreateBlock = useCallback(
     async (block: ContentBlock, index: number) => {
+      if (!drive) return;
+
       setActions([
         {
           title: "Signing",
@@ -72,6 +75,8 @@ export const PageContent: FC<Props> = ({ page, pageKey }) => {
         );
         nextStep();
       } catch (err) {
+        console.log(err);
+        notify({ type: "error", message: String(err) });
         setError();
       }
     },

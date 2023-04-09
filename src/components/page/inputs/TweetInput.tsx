@@ -3,23 +3,45 @@ import React, { useState } from "react";
 import { ContentBlock } from "../../../utils/types";
 
 interface Props {
+  defaultUrl?: string;
+  defaultStyle?: string;
   choice: (block: ContentBlock) => void;
   onClose: () => void;
 }
-export function TweetInput({ choice, onClose }: Props) {
-  const [url, setUrl] = useState<string>("");
+export function TweetInput({
+  defaultUrl,
+  defaultStyle,
+  choice,
+  onClose,
+}: Props) {
+  const [url, setUrl] = useState<string>(defaultUrl);
+  const [style, setStyle] = useState<string>(defaultStyle);
 
   return (
     <>
       <div className="form-control">
-        <label className="label">
-          <span className="label-text">Enter amount</span>
-        </label>
-        <input
-          className="input"
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://twitter.com/0xMert_/status/1645003022987329542"
-        />
+        <div>
+          <label className="label">
+            <span className="label-text">Enter Tweet URL</span>
+          </label>
+          <input
+            className="input"
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://twitter.com/0xMert_/status/1645003022987329542"
+            defaultValue={defaultUrl}
+          />
+        </div>
+        <div>
+          <label className="label">
+            <span className="label-text">Enter Tailwind classes</span>
+          </label>
+          <input
+            className="input"
+            onChange={(e) => setStyle(e.target.value)}
+            placeholder="w-100"
+            defaultValue={defaultStyle}
+          />
+        </div>
       </div>
       <div className="btn-group w-100">
         <div className="btn btn-secondary" onClick={onClose}>
@@ -31,9 +53,9 @@ export function TweetInput({ choice, onClose }: Props) {
             choice({
               contentType: "microblog",
               content: url,
-              className: "",
+              className: style,
             });
-            onClose;
+            onClose();
           }}
         >
           Create
