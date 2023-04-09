@@ -3,13 +3,15 @@ import { Combobox, Dialog, Listbox, Transition } from "@headlessui/react";
 import { ContentBlock, Page } from "../../utils/types";
 import { FC, Fragment, useState } from "react";
 
+import { ContentBlockType } from "../../utils/constants";
 import { PageContentBlock } from "./PageContentBlock";
+import { PageContentBlockInput } from "./PageContentBlockInput";
 import { PlusCircleIcon } from "@heroicons/react/outline";
 import React from "react";
 
-const blockTypes = [
-  { name: "Tweet", id: "microblog" },
-  { name: "YouTube", id: "video" },
+const blockTypes: { name: string; id: ContentBlockType }[] = [
+  { name: "Tweet", id: ContentBlockType.Microblog },
+  // { name: "YouTube", id: "video" },
 ];
 
 interface Props {
@@ -18,7 +20,6 @@ interface Props {
 export const AddBlockButton: FC<Props> = ({ choice }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(blockTypes[0]);
-  const [url, setUrl] = useState<string>("");
 
   return (
     <>
@@ -95,33 +96,11 @@ export const AddBlockButton: FC<Props> = ({ choice }) => {
                         </Listbox>
                       </div>
                     </div>
-                    <div>
-                      <input
-                        className="input"
-                        onChange={(e) => setUrl(e.target.value)}
-                      />
-                    </div>
-                    <div className="btn-group w-full">
-                      <div
-                        className="btn btn-secondary"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Cancel
-                      </div>
-                      <div
-                        className="btn btn-primary"
-                        onClick={() => {
-                          choice({
-                            contentType: "microblog",
-                            content: url,
-                            className: "",
-                          });
-                          setIsOpen(false);
-                        }}
-                      >
-                        Create
-                      </div>
-                    </div>
+                    <PageContentBlockInput
+                      type={selectedType.id}
+                      choice={choice}
+                      onClose={() => setIsOpen(false)}
+                    />
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
